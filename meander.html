@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+	<title>Meander</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 1.27" />
+</head>
+
+<body>
+	<canvas id="field" width='500' height='500'></canvas>
+	
+	<script>
+		var c = document.getElementById("field");
+		var W = c.width, H = c.height, N = 5, S = W/N, x_offset = 0, y_offset = 0;
+		var ctx = c.getContext('2d');
+		ctx.lineWidth=1;
+		ctx.fillStyle='blue';
+		c.addEventListener("click", onClick, false);
+		
+		
+		var m =[[1, -1, 1, -1, 1],
+				[-1, 1, -1, 1, -1],
+				[1, -1, 0, -1, 1],
+				[-1, 1, -1, 1, -1],
+				[1, -1, 1, -1, 1]];
+		
+		function drawTile(i, j){
+			if(m[j][i] == 0){
+				return;
+			}
+			
+			var x = i*S + x_offset, y = j*S + y_offset;
+			
+			ctx.fillStyle='lightgray';
+			ctx.fillRect(i*S+1, j*S+1,S-2,S-2);
+			switch( m[j][i] ){
+				case 1 :
+					ctx.beginPath();
+					ctx.arc( i * S, j * S, S/2, 0, 0.5 * Math.PI );
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.arc( i * S + S , j * S + S, S/2, 1 * Math.PI, 1.5 * Math.PI );
+					ctx.stroke();
+					break;
+				case -1 :
+					ctx.beginPath();
+					ctx.arc( i * S, j * S + S, S/2, 1.5 * Math.PI, 0 );
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.arc( i * S + S, j * S, S/2, 0.5 * Math.PI, 1 * Math.PI  );
+					ctx.stroke();
+					break;
+				default:
+					break;
+			}
+		}
+		
+		function drawField(){
+			ctx.fillStyle='white';
+			ctx.clearRect(0,0,W,H);
+			//ctx.fillRect(0,0,W,H);
+	
+			ctx.fillStyle='blue';
+			ctx.lineWidth=1;
+			ctx.strokeRect(0,0,W,H);
+			for(let k = 1; k <N; k++){
+				ctx.fillRect(k*S, 0, 1, H);
+				ctx.fillRect(0, k*S, W, 1);
+			} 
+			
+			ctx.lineWidth=3;
+			for(i = 0; i < N; i++) {
+				for(j = 0; j < N; j++) {
+					drawTile(i,j);
+				}
+			}
+		}
+		 
+		function onClick(e) {
+			var x = Math.floor((e.pageX-x_offset)/S);
+			var y = Math.floor((e.pageY-y_offset)/S);
+			
+			ctx.fillText( x, 100, 100 );
+			ctx.fillText( y, 100, 200 );
+			
+			//m[y][x] = m[y][x] * (-1);
+			shiftFiled(y,x);
+			//drawField();
+		} 	
+		
+		function shiftFiled(y, x) {
+			if(m[y][x] == 0){
+				ctx.fillStyle='lightgreen';
+				ctx.fillRect(x*S+1, y*S+1,S-2,S-2);
+				return;
+			}
+			var x_hole = 0, y_hole = 0;
+			for( i = 0; i < N; i++){
+				for( j = 0; j < N; j++) {
+					if( m[i][j] == 0 ) {
+						y_hole = i;
+						x_hole = j;
+					}
+				}
+			}
+			if( x_hole == x ){
+				if( y_hole > y ){
+					for( k = y_hole; k > y; k-- )
+						m[k][x] = m[k-1][x];
+				}
+				else{
+					for( k = y_hole; k < y; k++ )
+						m[k][x] = m[k+1][x];
+				}
+			}
+			else if (y_hole==y){
+				if( x_hole > x ){
+					for( k = x_hole; k > x; k--)
+						m[y][k] = m[y][k-1];
+				}
+				else
+				{
+					for( k = x_hole; k < x; k++)
+						m[y][k] = m[y][k+1];
+				}
+			}
+			else{
+				return;
+			}
+			
+			m[y][x] = 0;
+			drawField();
+		}	
+		
+		drawField();
+		//setInterval(drawField, 200);
+		
+	</script>
+</body>
+
+</html>
