@@ -19,6 +19,16 @@
 		ctx.fillStyle='blue';
 		c.addEventListener("click", onClick, false);
 		
+		var isAnimate = false;
+		var frame = 0;
+		var maxFrame = 10.0;
+		var x_img = 0;
+		var y_img = 0;
+		var w_img = 0;
+		var h_img = 0;
+		var dx_img = 0;
+		var dy_img = 0;
+		var img;
 		
 		var m =[[1, -1, 1, -1, 1],
 				[-1, 1, -1, 1, -1],
@@ -30,9 +40,7 @@
 			if(m[j][i] == 0){
 				return;
 			}
-			
 			var x = i*S + x_offset, y = j*S + y_offset;
-			
 			ctx.fillStyle='lightgray';
 			ctx.fillRect(x + 1, y + 1,S-2,S-2);
 			switch( m[j][i] ){
@@ -57,14 +65,17 @@
 			}
 		}
 		
+		function drawBorder(){
+			ctx.fillStyle='black';
+			ctx.lineWidth=3;
+			ctx.strokeRect(0 + x_offset,0 + y_offset,W-2,H-2);
+		}
+		
 		function drawField(){
 			ctx.fillStyle='white';
 			ctx.clearRect(0 + x_offset,0 + y_offset,W,H);
-			//ctx.fillRect(0,0,W,H);
-	
 			ctx.fillStyle='blue';
 			ctx.lineWidth=1;
-			ctx.strokeRect(0 + x_offset,0 + y_offset,W,H);
 			for(let k = 1; k <N; k++){
 				ctx.fillRect(k*S + x_offset, 0 + y_offset, 1, H);
 				ctx.fillRect(0 + x_offset, k*S + y_offset, W, 1);
@@ -76,6 +87,7 @@
 					drawTile(i,j);
 				}
 			}
+			drawBorder();
 		}
 		 
 		function onClick(e) {
@@ -88,6 +100,7 @@
 		
 		function shiftFiled(y, x) {
 			if(m[y][x] == 0){
+				drawField();
 				ctx.fillStyle='lightgreen';
 				ctx.fillRect(x*S+1 + x_offset, y*S+1 + y_offset,S-2,S-2);
 				return;
@@ -103,25 +116,76 @@
 			}
 			if( x_hole == x ){
 				var step = ( y_hole > y ) ? -1 : 1;
-				for( k = y_hole; k != y; k += step )
+				var h = 0;
+				for( k = y_hole; k != y; k += step, h+=1 )
 					m[k][x] = m[k + step][x];
+			
+				x_img = (x-1) * S + x_offset;
+				if( step < 0 ){
+					y_img = (y - 1) * S + y_offset;
+				}
+				else
+				{
+					y_img = (y_hole) * S + y_offset;
+				}
+				w_img = S;
+				h_img = h*S;
+				dx_img = 0;
+				dy_img = -S * (1.0 / maxFrame) * step;
+		
 			}
 			else if (y_hole==y){
 				var step = ( x_hole > x ) ? -1 : 1;
-				for( k = x_hole; k != x; k += step )
+				var h = 0;
+				for( k = x_hole; k != x; k += step, h+=1 )
 					m[y][k] = m[y][k + step];
+			
+				y_img = (y-1) * S + y_offset;
+				if( step < 0 ){
+					x_img = (x - 1) * S + x_offset;
+				}
+				else{
+					x_img = (x_hole) * S + x_offset;
+				}
+				h_img = S;
+				w_img = h*S;
+				dy_img = 0;
+				dx_img = -S * (1.0 / maxFrame) * step;
 			}
 			else{
 				return;
 			}
-			
 			m[y][x] = 0;
-			drawField();
+			img = ctx.getImageData(x_img + x_offset, y_img + y_offset, w_img, h_img );
+			animateShift(0);
+		}
+		
+		function animateShift(cur_frame) {
+			isAnimate = true;
+			//ctx.clearRect(0, 0, 100, 100);
+			//ctx.lineWidth=1;
+			//ctx.strokeText( cur_frame.toString(), 10, 10 );
+			//ctx.strokeText( x_img.toString(), 10, 20 );
+			//ctx.strokeText( y_img.toString(), 10, 30 );
+			//ctx.strokeText( w_img.toString(), 10, 40 );
+			//ctx.strokeText( h_img.toString(), 10, 50 );
+			//ctx.strokeText( dy_img.toString(), 10, 60 );
+			if(cur_frame < maxFrame ) {
+				
+				ctx.clearRect(x_offset + x_img + dx_img * cur_frame, y_offset + y_img + dy_img * cur_frame, w_img, h_img);
+				ctx.putImageData(img, x_offset + x_img + dx_img * (cur_frame + 1), y_offset + y_img + dy_img * (cur_frame + 1) );
+				drawBorder();
+				window.setTimeout( function(){ animateShift(cur_frame+1) }, 300 / maxFrame );
+			}
+			else {
+				isAnimate = false;
+				drawField();
+			}
+				
 		}	
 		
 		drawField();
-		//setInterval(drawField, 200);
-		
+				
 	</script>
 </body>
 
