@@ -18,22 +18,22 @@
 		
 		// анимация 
 		var isAnimate = false;
-		var frame = 0;
-		var maxFrame = 10.0;
-		var x_img = 0;
-		var y_img = 0;
-		var w_img = 0;
-		var h_img = 0;
-		var dx_img = 0;
-		var dy_img = 0;
+		var frame = 0, maxFrame = 10.0;
+		var x_img = 0, y_img = 0, w_img = 0, h_img = 0, dx_img = 0, dy_img = 0;
 		var img;
 		
 		// игровое поле
 		var m =[[1, -1, 1, -1, 1],
-				[-1, 1, -1, 1, -1],
-				[1, -1, 0, -1, 1],
-				[-1, 1, -1, 1, -1],
-				[1, -1, 1, -1, 1]];
+			[-1, 1, -1, 1, -1],
+			[1, -1, 0, -1, 1],
+			[-1, 1, -1, 1, -1],
+			[1, -1, 1, -1, 1]];
+		
+		function drawArc(x, y, r, start, end){
+			ctx.beginPath();
+			ctx.arc( x, y, r, start, end );
+			ctx.stroke();
+		}
 		
 		// отрисовка плитки с координатами i, j
 		function drawTile(i, j){
@@ -42,23 +42,14 @@
 			var x = i*S + x_offset, y = j*S + y_offset;
 			ctx.fillStyle='lightgray';
 			ctx.fillRect(x + 1, y + 1,S-2,S-2);
-			ctx.lineWidth=3;
 			switch( m[j][i] ){
 				case 1 :
-					ctx.beginPath();
-					ctx.arc( x, y, S/2, 0, 0.5 * Math.PI );
-					ctx.stroke();
-					ctx.beginPath();
-					ctx.arc( x + S , y + S, S/2, 1 * Math.PI, 1.5 * Math.PI );
-					ctx.stroke();
+					drawArc( x, y, S/2, 0, 0.5 * Math.PI );
+					drawArc( x + S , y + S, S/2, 1 * Math.PI, 1.5 * Math.PI );
 					break;
 				case -1 :
-					ctx.beginPath();
-					ctx.arc( x, y + S, S/2, 1.5 * Math.PI, 0 );
-					ctx.stroke();
-					ctx.beginPath();
-					ctx.arc( x + S, y, S/2, 0.5 * Math.PI, 1 * Math.PI  );
-					ctx.stroke();
+					drawArc( x, y + S, S/2, 1.5 * Math.PI, 0 );
+					drawArc( x + S, y, S/2, 0.5 * Math.PI, 1 * Math.PI  );
 					break;
 				default:
 					break;
@@ -67,8 +58,6 @@
 		
 		// отрисовка рамки вокруг поля
 		function drawBorder(){
-			ctx.fillStyle='black';
-			ctx.lineWidth=3;
 			ctx.strokeRect(0 + x_offset,0 + y_offset,W-2,H-2);
 		}
 		
@@ -81,10 +70,12 @@
 			for(let k = 1; k <N; k++){
 				ctx.fillRect(k*S + x_offset, 0 + y_offset, 1, H);
 				ctx.fillRect(0 + x_offset, k*S + y_offset, W, 1);
-			} 
+			}
+			ctx.lineWidth=3;
 			for(i = 0; i < N; i++)
 				for(j = 0; j < N; j++)
 					drawTile(i,j);
+			ctx.fillStyle='black'; 
 			drawBorder();
 			printPathLength();
 		}
@@ -108,39 +99,33 @@
 						y_hole = i;
 						x_hole = j;
 					}
-			
+	
+			// данные для анимации 		
 			if( x_hole == x ){
+				w_img = S;
+				h_img = 0;
 				var step = ( y_hole > y ) ? -1 : 1;
-				var h = 0;
-				for( k = y_hole; k != y; k += step, h+=1 )
+				for( k = y_hole; k != y; k += step, h_img+=S )
 					m[k][x] = m[k + step][x];
-			
 				x_img = (x-1) * S + x_offset;
 				if( step < 0 )
 					y_img = (y - 1) * S + y_offset;
 				else
 					y_img = (y_hole) * S + y_offset;
-
-				w_img = S;
-				h_img = h*S;
 				dx_img = 0;
 				dy_img = -S * (1.0 / maxFrame) * step;
-		
 			}
 			else if (y_hole==y){
+				h_img = S;
+				w_img = 0;
 				var step = ( x_hole > x ) ? -1 : 1;
-				var w = 0;
-				for( k = x_hole; k != x; k += step, w+=1 )
+				for( k = x_hole; k != x; k += step, w_img+=S )
 					m[y][k] = m[y][k + step];
-			
 				y_img = (y-1) * S + y_offset;
 				if( step < 0 )
 					x_img = (x - 1) * S + x_offset;
 				else
 					x_img = (x_hole) * S + x_offset;
-
-				h_img = S;
-				w_img = w*S;
 				dy_img = 0;
 				dx_img = -S * (1.0 / maxFrame) * step;
 			}
